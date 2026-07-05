@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Void System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --gold:#e8a435;--gold2:#c47f1a;--cream:#f0ddb0;
+      --muted:rgba(240,221,176,0.38);--bg:#050302;
+      --panel-bg:#0d0d0f;--panel-border:#1e1e24;
+      --green:#00e5a0;--red:#ff4455;--mono:'Share Tech Mono',monospace;
+    }
+    html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif}
+
+    /* VIDEO — handled inline */
+    .overlay{position:fixed;inset:0;z-index:1;background:radial-gradient(ellipse 58% 58% at 50% 50%,transparent 10%,rgba(5,3,2,.48) 60%,rgba(5,3,2,.92) 100%)}
+    .vt{position:fixed;top:0;left:0;right:0;height:28%;z-index:1;background:linear-gradient(to bottom,rgba(5,3,2,.75),transparent)}
+    .vb{position:fixed;bottom:0;left:0;right:0;height:22%;z-index:1;background:linear-gradient(to top,rgba(5,3,2,.85),transparent)}
+    .scanlines{position:fixed;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px)}
+
+    /* TOPBAR */
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:20px 38px}
+    .logo{font-family:'Orbitron',monospace;font-size:12px;font-weight:600;letter-spacing:.28em;color:var(--gold);text-transform:uppercase;opacity:0;animation:fdD .9s .3s forwards}
+    .status-chip{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;opacity:0;animation:fdD .9s .5s forwards}
+    .dot{width:6px;height:6px;border-radius:50%;background:#d4813a;animation:blink 2.4s ease-in-out infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+    /* HERO — kiri bawah */
+    #stage{position:fixed;inset:0;z-index:5;display:flex;align-items:flex-end;padding:0 6vw 10vh}
+    .hero{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:18px;max-width:540px;pointer-events:none}
+    .eyebrow{font-size:10px;letter-spacing:.42em;text-transform:uppercase;color:rgba(232,164,53,.5);opacity:0;animation:fdU .9s .7s forwards}
+    .headline{font-family:'Orbitron',monospace;font-size:clamp(2.4rem,5.5vw,4.4rem);font-weight:900;line-height:1.04;color:var(--cream);opacity:0;transform:translateY(18px) scale(.98);animation:heroIn 1.3s .9s cubic-bezier(.16,1,.3,1) forwards}
+    .headline .outline{display:block;color:transparent;-webkit-text-stroke:1.5px var(--gold);text-shadow:0 0 80px rgba(232,164,53,.15)}
+    .divider{width:60px;height:1px;background:linear-gradient(90deg,var(--gold-dim,rgba(232,164,53,.45)),transparent);opacity:0;animation:fdU .9s 1.1s forwards}
+    .sub{font-size:13px;font-weight:300;line-height:1.8;color:var(--muted);max-width:380px;opacity:0;animation:fdU .9s 1.2s forwards}
+    .orbit-hint{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:rgba(232,164,53,.25);opacity:0;animation:fdU .9s 2.2s forwards;pointer-events:none}
+
+    /* CANVAS debris */
+    #debris-canvas{position:fixed;inset:0;z-index:6;width:100%;height:100%;pointer-events:none}
+
+    /* DEBRIS BUTTONS */
+    .debris-btn{position:fixed;z-index:7;cursor:pointer;background:transparent;border:none;padding:0;transform-origin:center;opacity:0;transition:filter .2s,opacity .4s ease}
+    .suck-target{will-change:transform,opacity}
+    .debris-btn .d-inner{position:relative;display:flex;align-items:center;justify-content:center}
+    .d-label{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--gold);background:rgba(5,3,2,.9);border:1px solid rgba(232,164,53,.3);padding:4px 10px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+    .debris-btn:hover .d-label{opacity:1;transform:translateX(-50%) translateY(0)}
+    .d-shape{transition:filter .25s,transform .2s}
+    .debris-btn:hover .d-shape{filter:drop-shadow(0 0 10px rgba(232,164,53,.65)) drop-shadow(0 0 20px rgba(232,164,53,.3));transform:scale(1.08)}
+
+    /* TRANSITION */
+    #transition-veil{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 50%,#f5c96a 0%,#c47f1a 25%,#050302 65%);opacity:0;pointer-events:none;transform:scale(0);border-radius:50%;transition:none}
+    #transition-veil.expanding{pointer-events:all;animation:veilExpand .85s cubic-bezier(.6,0,.4,1) forwards}
+    @keyframes veilExpand{0%{opacity:0;transform:scale(0)}15%{opacity:1;transform:scale(.12)}100%{opacity:1;transform:scale(3.5);border-radius:0}}
+
+    /* ADMIN PANEL */
+    #admin-panel{position:fixed;inset:0;z-index:90;background:var(--panel-bg);display:none;flex-direction:column;opacity:0}
+    #admin-panel.visible{display:flex;animation:panelIn .5s .75s forwards}
+    @keyframes panelIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+
+    .p-topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:44px;background:#0a0a0c;border-bottom:1px solid var(--panel-border);flex-shrink:0}
+    .p-title{font-family:var(--mono);font-size:12px;color:#e55;display:flex;align-items:center;gap:10px;letter-spacing:.12em}
+    .p-title .rdot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1.8s infinite}
+    .p-ver{font-family:var(--mono);font-size:10px;color:#444;letter-spacing:.1em}
+    .p-back{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#555;background:transparent;border:1px solid #1e1e24;padding:5px 14px;cursor:pointer;transition:color .2s,border-color .2s}
+    .p-back:hover{color:var(--gold);border-color:rgba(232,164,53,.4)}
+    .p-body{display:flex;flex:1;overflow:hidden}
+    .p-sidebar{width:188px;flex-shrink:0;background:#0a0a0c;border-right:1px solid var(--panel-border);display:flex;flex-direction:column;overflow-y:auto;padding:18px 0}
+    .sb-section{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:#333;text-transform:uppercase;padding:0 16px 8px}
+    .sb-card{margin:2px 10px;padding:8px 12px;background:#0f0f12;border:1px solid var(--panel-border);display:flex;justify-content:space-between;align-items:center}
+    .sb-card-label{font-family:var(--mono);font-size:11px;color:#555;letter-spacing:.08em}
+    .sb-card-val{font-family:var(--mono);font-size:16px;color:var(--cream);font-weight:bold}
+    .sb-divider{height:1px;background:var(--panel-border);margin:14px 0}
+    .client-item{margin:3px 10px;padding:8px 12px;background:#0f0f12;border:1px solid var(--panel-border);display:flex;align-items:center;gap:8px;cursor:pointer;transition:border-color .2s}
+    .client-item:hover{border-color:#333}
+    .client-item.active{border-color:rgba(0,229,160,.3)}
+    .c-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+    .c-name{font-family:var(--mono);font-size:11px;color:#aaa;flex:1}
+    .c-ip{font-family:var(--mono);font-size:10px;color:#444}
+    .sb-maint{padding:14px 10px 0}
+    .sb-maint-btn{width:100%;padding:8px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:transparent;border:1px solid #2a1a1a;color:#553;cursor:pointer;text-align:left;transition:border-color .2s,color .2s}
+    .sb-maint-btn:hover{border-color:#aa3333;color:#e55}
+    .p-main{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+    .p-section{background:#0f0f12;border:1px solid var(--panel-border)}
+    .p-section-hdr{padding:10px 14px;border-bottom:1px solid var(--panel-border);display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green)}
+    .p-section-hdr svg{width:14px;height:14px;flex-shrink:0}
+    .p-section-body{padding:14px}
+    .cmd-row{display:flex;gap:8px;height:38px}
+    .cmd-select{font-family:var(--mono);font-size:11px;color:#aaa;background:#0a0a0c;border:1px solid #1e1e24;padding:0 10px;min-width:140px;cursor:pointer;outline:none}
+    .cmd-input{flex:1;font-family:var(--mono);font-size:12px;color:var(--cream);background:#0a0a0c;border:1px solid #1e1e24;padding:0 14px;outline:none;transition:border-color .2s}
+    .cmd-input:focus{border-color:rgba(0,229,160,.4)}
+    .cmd-input::placeholder{color:#333}
+    .cmd-btn{font-family:var(--mono);font-size:11px;letter-spacing:.15em;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.35);color:var(--green);padding:0 20px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:background .2s,border-color .2s;height:38px}
+    .cmd-btn:hover{background:rgba(0,229,160,.16);border-color:rgba(0,229,160,.6)}
+    .pending-chips{display:flex;flex-wrap:wrap;gap:8px}
+    .p-chip{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:#aaa;background:#0a0a0c;border:1px solid #1e1e24;padding:5px 12px;display:flex;align-items:center;gap:6px}
+    .p-chip::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green)}
+    .log-area{font-family:var(--mono);font-size:12px;color:#666;min-height:60px;line-height:1.6}
+    .log-empty{color:#2a2a2a;text-align:center;padding:14px 0}
+    .reg-table{width:100%;border-collapse:collapse}
+    .reg-table th{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#333;padding:8px 12px;text-align:left;border-bottom:1px solid var(--panel-border)}
+    .reg-table td{font-family:var(--mono);font-size:11px;color:#666;padding:10px 12px;border-bottom:1px solid #111}
+    .reg-table tr:hover td{background:#111;color:#999}
+    .status-online{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--green);border:1px solid rgba(0,229,160,.25);padding:3px 10px;background:rgba(0,229,160,.05)}
+    .status-online::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--green)}
+
+    /* BOTTOMBAR */
+    .bottombar{position:fixed;bottom:0;left:0;right:0;z-index:8;display:flex;align-items:center;justify-content:space-between;padding:18px 38px;pointer-events:none;opacity:0;animation:fdU .9s 2s forwards}
+    .bb-item{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(240,221,176,.16)}
+
+    /* CORNERS */
+    .corner{position:fixed;z-index:8;width:34px;height:34px;opacity:.3;pointer-events:none}
+    .corner svg{width:100%;height:100%}
+    .corner.tl{top:13px;left:13px}.corner.tr{top:13px;right:13px;transform:scaleX(-1)}
+    .corner.bl{bottom:13px;left:13px;transform:scaleY(-1)}.corner.br{bottom:13px;right:13px;transform:scale(-1,-1)}
+
+    @keyframes fdU{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fdD{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes heroIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+
+<video id="bg-video-fwd" autoplay muted playsinline
+  style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0;transition:opacity 2s ease">
+  <source src="blackhole.mp4" type="video/mp4"/>
+</video>
+<video id="bg-video-rev" muted playsinline
+  style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0">
+  <source src="blackhole_reverse.mp4" type="video/mp4"/>
+</video>
+<div class="overlay"></div><div class="vt"></div><div class="vb"></div>
+<div class="scanlines"></div>
+
+<div class="corner tl suck-target" id="corner-tl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32L2 2L32 2" stroke="#e8a435" stroke-width="1.5"/><path d="M2 11L11 2" stroke="#e8a435" stroke-width="1" opacity=".6"/></svg></div>
+<div class="corner tr suck-target" id="corner-tr"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32L2 2L32 2" stroke="#e8a435" stroke-width="1.5"/><path d="M2 11L11 2" stroke="#e8a435" stroke-width="1" opacity=".6"/></svg></div>
+<div class="corner bl suck-target" id="corner-bl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32L2 2L32 2" stroke="#e8a435" stroke-width="1.5"/><path d="M2 11L11 2" stroke="#e8a435" stroke-width="1" opacity=".6"/></svg></div>
+<div class="corner br suck-target" id="corner-br"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32L2 2L32 2" stroke="#e8a435" stroke-width="1.5"/><path d="M2 11L11 2" stroke="#e8a435" stroke-width="1" opacity=".6"/></svg></div>
+
+<header class="topbar suck-target" id="topbar">
+  <div class="logo">Void System</div>
+  <div class="status-chip"><span class="dot"></span><span>Sistem Aktif</span></div>
+</header>
+
+<canvas id="debris-canvas"></canvas>
+
+<!-- 3 debris click zones -->
+<button class="debris-btn" id="db0" onclick="triggerTransition()">
+  <div class="d-inner">
+    <div class="d-label">// ADMIN ACCESS</div>
+    <canvas class="d-shape" id="dc0" width="72" height="58"></canvas>
+  </div>
+</button>
+<button class="debris-btn" id="db1" onclick="triggerTransition()">
+  <div class="d-inner">
+    <div class="d-label">// C2 PANEL</div>
+    <canvas class="d-shape" id="dc1" width="54" height="68"></canvas>
+  </div>
+</button>
+<button class="debris-btn" id="db2" onclick="triggerTransition()">
+  <div class="d-inner">
+    <div class="d-label">// COMMAND CENTER</div>
+    <canvas class="d-shape" id="dc2" width="64" height="48"></canvas>
+  </div>
+</button>
+
+<main id="stage" class="suck-target">
+  <div class="hero">
+    <p class="eyebrow">Akses terbatas — personel berwenang</p>
+    <h1 class="headline">Menuju<br/><span class="outline">Singularitas</span></h1>
+    <div class="divider"></div>
+    <p class="sub">Panel kendali sistem diproteksi. Hanya personel berwenang yang dapat mengakses modul administrasi utama.</p>
+    <p class="orbit-hint">▸ Klik serpihan orbital untuk masuk</p>
+  </div>
+</main>
+
+<footer class="bottombar suck-target" id="bottombar">
+  <span class="bb-item">Void System v2.4</span>
+  <span class="bb-item" id="clock">--:--:--</span>
+  <span class="bb-item">© 2026</span>
+</footer>
+
+
+
+<script>
+/* VIDEO — crossfade forward/reverse */
+const fwd=document.getElementById('bg-video-fwd');
+const rev=document.getElementById('bg-video-rev');
+function crossfade(from,to){
+  to.currentTime=0;to.play();
+  to.style.transition='opacity 0.6s ease';to.style.opacity='1';
+  from.style.transition='opacity 0.6s ease';from.style.opacity='0';
+  setTimeout(()=>from.pause(),650);
+}
+fwd.addEventListener('canplay',()=>{fwd.style.opacity='1';},{once:true});
+fwd.addEventListener('ended',()=>crossfade(fwd,rev));
+rev.addEventListener('ended',()=>crossfade(rev,fwd));
+
+/* CLOCK */
+function tick(){
+  const n=new Date(),p=v=>String(v).padStart(2,'0');
+  document.getElementById('clock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+}
+tick();setInterval(tick,1000);
+
+/* ══════════════════════════════════════════
+   DRAW ROCKY ASTEROID pada canvas tiap puing
+   ══════════════════════════════════════════ */
+function drawAsteroid(canvasEl, seed, w, h) {
+  const ctx = canvasEl.getContext('2d');
+  canvasEl.width = w; canvasEl.height = h;
+  const rng = (s=>{let x=s;return()=>{x=Math.sin(x)*43758.5453;return x-Math.floor(x)}})(seed);
+
+  const cx=w/2, cy=h/2;
+  const baseR = Math.min(w,h)*0.38;
+  const pts = 14;
+  const verts = [];
+  for(let i=0;i<pts;i++){
+    const ang = (i/pts)*Math.PI*2;
+    const r = baseR*(0.68 + rng()*0.52);
+    verts.push({x:cx+Math.cos(ang)*r*(w/h<1?0.85:1), y:cy+Math.sin(ang)*r*(h/w<1?0.85:1)});
+  }
+
+  /* shadow gelap */
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.7)';
+  ctx.shadowBlur=12;
+
+  /* fill batu — gradient abu-abu gelap dengan sedikit warna coklat */
+  const grd=ctx.createRadialGradient(cx-baseR*.25,cy-baseR*.2,baseR*.05,cx,cy,baseR*1.1);
+  grd.addColorStop(0,'#4a4540');
+  grd.addColorStop(0.35,'#2e2b27');
+  grd.addColorStop(0.7,'#1a1815');
+  grd.addColorStop(1,'#0d0c0a');
+  ctx.beginPath();
+  ctx.moveTo(verts[0].x,verts[0].y);
+  for(let i=1;i<verts.length;i++) ctx.lineTo(verts[i].x,verts[i].y);
+  ctx.closePath();
+  ctx.fillStyle=grd;
+  ctx.fill();
+  ctx.restore();
+
+  /* tepi berbatu — stroke abu terang */
+  ctx.beginPath();
+  ctx.moveTo(verts[0].x,verts[0].y);
+  for(let i=1;i<verts.length;i++) ctx.lineTo(verts[i].x,verts[i].y);
+  ctx.closePath();
+  ctx.strokeStyle='rgba(160,150,135,0.55)';
+  ctx.lineWidth=1.2;
+  ctx.stroke();
+
+  /* highlight terang di sisi kiri atas — efek lit oleh blackhole */
+  ctx.beginPath();
+  ctx.moveTo(verts[0].x,verts[0].y);
+  for(let i=1;i<verts.length;i++) ctx.lineTo(verts[i].x,verts[i].y);
+  ctx.closePath();
+  const hg=ctx.createLinearGradient(cx-baseR,cy-baseR,cx+baseR*.3,cy+baseR*.3);
+  hg.addColorStop(0,'rgba(232,164,53,0.18)');
+  hg.addColorStop(0.3,'rgba(180,130,60,0.08)');
+  hg.addColorStop(1,'transparent');
+  ctx.fillStyle=hg;
+  ctx.fill();
+
+  /* kawah kecil */
+  const craters=3+Math.floor(rng()*3);
+  for(let k=0;k<craters;k++){
+    const px=cx+(rng()-.5)*baseR*1.1;
+    const py=cy+(rng()-.5)*baseR*0.9;
+    const pr=baseR*(0.06+rng()*0.1);
+    ctx.beginPath();
+    ctx.arc(px,py,pr,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,0.35)';
+    ctx.fill();
+    ctx.strokeStyle='rgba(100,90,80,0.3)';
+    ctx.lineWidth=.6;
+    ctx.stroke();
+  }
+}
+
+/* render 3 asteroid */
+drawAsteroid(document.getElementById('dc0'), 42, 72, 58);
+drawAsteroid(document.getElementById('dc1'), 77, 54, 68);
+drawAsteroid(document.getElementById('dc2'), 13, 64, 48);
+
+/* ══════════════════════════════════════════
+   ORBITAL TRAIL CANVAS
+   ══════════════════════════════════════════ */
+const canvas=document.getElementById('debris-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,CX,CY;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;CX=W/2;CY=H/2}
+resize();window.addEventListener('resize',resize);
+
+/* orbit params — elips mengikuti perspektif blackhole */
+const DEFS=[
+  {speed:.00028, phase:0.8,  ax:.38, ay:.16, btnId:'db0'},
+  {speed:-.00019,phase:2.6,  ax:.44, ay:.19, btnId:'db1'},
+  {speed:.00023, phase:4.8,  ax:.34, ay:.14, btnId:'db2'},
+];
+const angles=DEFS.map(d=>d.phase);
+const trails=DEFS.map(()=>[]);
+const TLEN=50;
+let orbitalActive=true, initDone=false;
+
+function getPos(i,ang){
+  const d=DEFS[i];
+  return{
+    x:CX+Math.cos(ang)*Math.min(W,H)*d.ax,
+    y:CY+Math.sin(ang)*Math.min(W,H)*d.ay
+  };
+}
+
+function frame(){
+  if(!orbitalActive)return;
+  ctx.clearRect(0,0,W,H);
+
+  DEFS.forEach((d,i)=>{
+    angles[i]+=d.speed*16;
+    const pos=getPos(i,angles[i]);
+    trails[i].push({...pos});
+    if(trails[i].length>TLEN)trails[i].shift();
+
+    /* trail dengan warna emas memudar */
+    for(let t=1;t<trails[i].length;t++){
+      const f=t/trails[i].length;
+      ctx.beginPath();
+      ctx.moveTo(trails[i][t-1].x,trails[i][t-1].y);
+      ctx.lineTo(trails[i][t].x,trails[i][t].y);
+      ctx.strokeStyle=`rgba(232,164,53,${f*0.22})`;
+      ctx.lineWidth=f*1.5;
+      ctx.stroke();
+    }
+
+    /* posisi tombol */
+    const btn=document.getElementById(d.btnId);
+    const bw=btn.offsetWidth,bh=btn.offsetHeight;
+    btn.style.left=(pos.x-bw/2)+'px';
+    btn.style.top=(pos.y-bh/2)+'px';
+
+  });
+
+  /* fade in debris — hanya sekali setelah frame pertama */
+  if(!initDone){
+    initDone=true;
+    setTimeout(()=>{
+      DEFS.forEach(d=>{ document.getElementById(d.btnId).style.opacity='1'; });
+    }, 800);
+  }
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ══ SUCK-IN TRANSITION ══ */
+function triggerTransition(){
+  orbitalActive=false;
+
+  const suckEls=[
+    document.getElementById('topbar'),
+    document.getElementById('stage'),
+    document.getElementById('bottombar'),
+    document.getElementById('corner-tl'),
+    document.getElementById('corner-tr'),
+    document.getElementById('corner-bl'),
+    document.getElementById('corner-br'),
+    document.getElementById('db0'),
+    document.getElementById('db1'),
+    document.getElementById('db2'),
+  ];
+
+  const tx=window.innerWidth/2;
+  const ty=window.innerHeight/2;
+
+  suckEls.forEach((el,idx)=>{
+    if(!el)return;
+    const rect=el.getBoundingClientRect();
+    const ex=rect.left+rect.width/2;
+    const ey=rect.top+rect.height/2;
+    const dx=tx-ex;
+    const dy=ty-ey;
+    const delay=idx*28;
+    const dur=620+idx*18;
+    el.style.transition=`transform ${dur}ms ${delay}ms cubic-bezier(.55,.05,.68,.53), opacity ${dur*0.7}ms ${delay+dur*0.35}ms ease`;
+    el.style.transformOrigin='center center';
+    requestAnimationFrame(()=>{
+      el.style.transform=`translate(${dx}px,${dy}px) scale(0.08)`;
+      el.style.opacity='0';
+    });
+  });
+
+  /* POV: setelah elemen selesai, kamera ikut tersedot */
+  setTimeout(()=>{
+    document.body.style.transition='transform 600ms cubic-bezier(.4,0,.8,.6), filter 600ms ease, opacity 250ms 380ms ease';
+    document.body.style.transformOrigin='50% 50%';
+    requestAnimationFrame(()=>{
+      document.body.style.transform='scale(3.2)';
+      document.body.style.filter='blur(18px) brightness(0.1)';
+      document.body.style.opacity='0';
+    });
+  }, 550);
+
+  /* Redirect setelah semua animasi selesai */
+  setTimeout(()=>{
+    window.location.href='https://api.luminate.my.id/';
+  }, 1200);
+}
+</script>
+</body>
+</html>
