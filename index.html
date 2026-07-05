@@ -15,7 +15,7 @@
     }
     html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif}
 
-    /* VIDEO — handled inline on elements */
+    /* VIDEO — handled inline */
     .overlay{position:fixed;inset:0;z-index:1;background:radial-gradient(ellipse 58% 58% at 50% 50%,transparent 10%,rgba(5,3,2,.48) 60%,rgba(5,3,2,.92) 100%)}
     .vt{position:fixed;top:0;left:0;right:0;height:28%;z-index:1;background:linear-gradient(to bottom,rgba(5,3,2,.75),transparent)}
     .vb{position:fixed;bottom:0;left:0;right:0;height:22%;z-index:1;background:linear-gradient(to top,rgba(5,3,2,.85),transparent)}
@@ -42,15 +42,18 @@
     #debris-canvas{position:fixed;inset:0;z-index:6;width:100%;height:100%;pointer-events:none}
 
     /* DEBRIS BUTTONS */
-    .debris-btn{position:fixed;z-index:7;cursor:pointer;background:transparent;border:none;padding:0;transform-origin:center;opacity:0;transition:filter .2s}
+    .debris-btn{position:fixed;z-index:7;cursor:pointer;background:transparent;border:none;padding:0;transform-origin:center;opacity:0;transition:filter .2s,opacity .4s ease}
+    .suck-target{will-change:transform,opacity}
     .debris-btn .d-inner{position:relative;display:flex;align-items:center;justify-content:center}
     .d-label{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%) translateY(4px);white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--gold);background:rgba(5,3,2,.9);border:1px solid rgba(232,164,53,.3);padding:4px 10px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
     .debris-btn:hover .d-label{opacity:1;transform:translateX(-50%) translateY(0)}
     .d-shape{transition:filter .25s,transform .2s}
     .debris-btn:hover .d-shape{filter:drop-shadow(0 0 10px rgba(232,164,53,.65)) drop-shadow(0 0 20px rgba(232,164,53,.3));transform:scale(1.08)}
 
-    /* SUCK-IN — elemen yg akan terhisap */
-    .suck-target{will-change:transform,opacity}
+    /* TRANSITION */
+    #transition-veil{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 50%,#f5c96a 0%,#c47f1a 25%,#050302 65%);opacity:0;pointer-events:none;transform:scale(0);border-radius:50%;transition:none}
+    #transition-veil.expanding{pointer-events:all;animation:veilExpand .85s cubic-bezier(.6,0,.4,1) forwards}
+    @keyframes veilExpand{0%{opacity:0;transform:scale(0)}15%{opacity:1;transform:scale(.12)}100%{opacity:1;transform:scale(3.5);border-radius:0}}
 
     /* ADMIN PANEL */
     #admin-panel{position:fixed;inset:0;z-index:90;background:var(--panel-bg);display:none;flex-direction:column;opacity:0}
@@ -180,61 +183,7 @@
   <span class="bb-item">© 2026</span>
 </footer>
 
-<div id="admin-panel">
-  <div class="p-topbar">
-    <div class="p-title"><span class="rdot"></span>PANEL // C2 SERVER</div>
-    <button class="p-back" onclick="exitPanel()">← Kembali</button>
-    <div class="p-ver" id="p-ts">v3.0 • --</div>
-  </div>
-  <div class="p-body">
-    <aside class="p-sidebar">
-      <div class="sb-section">Overview</div>
-      <div class="sb-card"><span class="sb-card-label">Total Clients</span><span class="sb-card-val">2</span></div>
-      <div class="sb-card"><span class="sb-card-label">Pending Cmds</span><span class="sb-card-val" id="s-pend">4</span></div>
-      <div class="sb-card"><span class="sb-card-label">Output Entries</span><span class="sb-card-val">0</span></div>
-      <div class="sb-divider"></div>
-      <div class="sb-section">Online Clients</div>
-      <div class="client-item active" onclick="selectClient(this,'WIN2')"><span class="c-dot"></span><span class="c-name">WIN2</span><span class="c-ip">192.168.1.10</span></div>
-      <div class="client-item" onclick="selectClient(this,'WIN32')"><span class="c-dot"></span><span class="c-name">WIN32</span><span class="c-ip">192.168.1.10</span></div>
-      <div class="sb-maint">
-        <div class="sb-section" style="padding-left:0;padding-bottom:10px">Maintenance</div>
-        <button class="sb-maint-btn">⣿ ARCHIVE &amp; PURGE OUTPUTS</button>
-      </div>
-    </aside>
-    <div class="p-main">
-      <div class="p-section">
-        <div class="p-section-hdr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>SEND COMMAND</div>
-        <div class="p-section-body">
-          <div class="cmd-row">
-            <select class="cmd-select" id="cmd-client"><option value="">— Select Client —</option><option>WIN2</option><option>WIN32</option></select>
-            <input class="cmd-input" id="cmd-input" type="text" placeholder="whoami | hostname"/>
-            <button class="cmd-btn" onclick="sendCmd()"><svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><polygon points="0,0 10,5 0,10"/></svg>EXECUTE</button>
-          </div>
-        </div>
-      </div>
-      <div class="p-section">
-        <div class="p-section-hdr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>PENDING COMMANDS</div>
-        <div class="p-section-body"><div class="pending-chips" id="pending-chips"><div class="p-chip">WIN32 : jj</div><div class="p-chip">WIN32 : whoami</div><div class="p-chip">WIN32 : dir</div><div class="p-chip">WIN32 : whoami</div></div></div>
-      </div>
-      <div class="p-section">
-        <div class="p-section-hdr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>OUTPUT LOG (LATEST 100)</div>
-        <div class="p-section-body"><div class="log-area" id="log-area"><div class="log-empty">// No output received yet</div></div></div>
-      </div>
-      <div class="p-section">
-        <div class="p-section-hdr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>CLIENT REGISTRY</div>
-        <div class="p-section-body" style="padding:0">
-          <table class="reg-table">
-            <thead><tr><th>CLIENT ID</th><th>LAST SEEN</th><th>IP ADDRESS</th><th>STATUS</th></tr></thead>
-            <tbody>
-              <tr><td>WIN2</td><td>7/5/2026, 2:31:53 AM</td><td>192.168.1.10</td><td><span class="status-online">online</span></td></tr>
-              <tr><td>WIN32</td><td>6/29/2026, 6:14:53 PM</td><td>192.168.1.10</td><td><span class="status-online">online</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <script>
 /* VIDEO — crossfade forward/reverse */
@@ -254,7 +203,6 @@ rev.addEventListener('ended',()=>crossfade(rev,fwd));
 function tick(){
   const n=new Date(),p=v=>String(v).padStart(2,'0');
   document.getElementById('clock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
-  document.getElementById('p-ts').textContent='v3.0 • '+n.toISOString().replace('T',' ').slice(0,22)+'Z';
 }
 tick();setInterval(tick,1000);
 
@@ -392,13 +340,16 @@ function frame(){
     btn.style.left=(pos.x-bw/2)+'px';
     btn.style.top=(pos.y-bh/2)+'px';
 
-    /* fade in satu kali */
-    if(initDone){
-      const cur=parseFloat(btn.style.opacity||0);
-      if(cur<1)btn.style.opacity=Math.min(1,cur+0.012)+'';
-    }
   });
-  initDone=true;
+
+  /* fade in debris — hanya sekali setelah frame pertama */
+  if(!initDone){
+    initDone=true;
+    setTimeout(()=>{
+      DEFS.forEach(d=>{ document.getElementById(d.btnId).style.opacity='1'; });
+    }, 800);
+  }
+
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -407,7 +358,6 @@ requestAnimationFrame(frame);
 function triggerTransition(){
   orbitalActive=false;
 
-  /* Kumpulkan semua elemen yang ikut terhisap */
   const suckEls=[
     document.getElementById('topbar'),
     document.getElementById('stage'),
@@ -421,11 +371,9 @@ function triggerTransition(){
     document.getElementById('db2'),
   ];
 
-  /* Titik pusat layar (blackhole) */
   const tx=window.innerWidth/2;
   const ty=window.innerHeight/2;
 
-  /* Animasi tiap elemen terhisap ke tengah */
   suckEls.forEach((el,idx)=>{
     if(!el)return;
     const rect=el.getBoundingClientRect();
@@ -433,22 +381,17 @@ function triggerTransition(){
     const ey=rect.top+rect.height/2;
     const dx=tx-ex;
     const dy=ty-ey;
-
-    /* stagger sedikit per elemen agar tidak bergerak serentak */
     const delay=idx*28;
     const dur=620+idx*18;
-
     el.style.transition=`transform ${dur}ms ${delay}ms cubic-bezier(.55,.05,.68,.53), opacity ${dur*0.7}ms ${delay+dur*0.35}ms ease`;
     el.style.transformOrigin='center center';
-
-    /* mulai animasi di frame berikutnya */
     requestAnimationFrame(()=>{
       el.style.transform=`translate(${dx}px,${dy}px) scale(0.08)`;
       el.style.opacity='0';
     });
   });
 
-  /* ── Setelah elemen selesai terhisap, baru POV kita ikut masuk ── */
+  /* POV: setelah elemen selesai, kamera ikut tersedot */
   setTimeout(()=>{
     document.body.style.transition='transform 600ms cubic-bezier(.4,0,.8,.6), filter 600ms ease, opacity 250ms 380ms ease';
     document.body.style.transformOrigin='50% 50%';
@@ -459,78 +402,11 @@ function triggerTransition(){
     });
   }, 550);
 
-  /* Setelah semua terhisap, tampilkan panel */
+  /* Redirect setelah semua animasi selesai */
   setTimeout(()=>{
-    const p=document.getElementById('admin-panel');
-    p.style.display='flex';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
+    window.location.href='https://api.luminate.my.id/';
   }, 1200);
 }
-
-function exitPanel(){
-  const p=document.getElementById('admin-panel');
-  p.style.cssText='display:flex;opacity:0;transform:scale(1.02);transition:opacity .35s ease,transform .35s ease';
-
-  setTimeout(()=>{
-    p.classList.remove('visible');
-    p.style.display='none';
-    p.style.cssText='';
-
-    /* Reset POV body */
-    document.body.style.transition='none';
-    document.body.style.transform='';
-    document.body.style.filter='';
-    document.body.style.opacity='';
-
-    /* Reset semua elemen ke posisi semula */
-    const suckEls=[
-      document.getElementById('topbar'),
-      document.getElementById('stage'),
-      document.getElementById('bottombar'),
-      document.getElementById('corner-tl'),
-      document.getElementById('corner-tr'),
-      document.getElementById('corner-bl'),
-      document.getElementById('corner-br'),
-      document.getElementById('db0'),
-      document.getElementById('db1'),
-      document.getElementById('db2'),
-    ];
-    suckEls.forEach(el=>{
-      if(!el)return;
-      el.style.transition='none';
-      el.style.transform='';
-      el.style.opacity='';
-    });
-
-    orbitalActive=true;
-    DEFS.forEach(d=>document.getElementById(d.btnId).style.opacity='1');
-    requestAnimationFrame(frame);
-  },370);
-}
-
-/* ══ PANEL LOGIC ══ */
-let selClient='WIN2';
-function selectClient(el,name){
-  document.querySelectorAll('.client-item').forEach(e=>e.classList.remove('active'));
-  el.classList.add('active');selClient=name;
-  document.getElementById('cmd-client').value=name;
-}
-const logEl=document.getElementById('log-area');
-const chipsEl=document.getElementById('pending-chips');
-function sendCmd(){
-  const inp=document.getElementById('cmd-input');
-  const cl=document.getElementById('cmd-client').value||selClient||'WIN2';
-  const cmd=inp.value.trim();if(!cmd)return;
-  const chip=document.createElement('div');chip.className='p-chip';chip.textContent=cl+' : '+cmd;
-  chipsEl.appendChild(chip);
-  if(logEl.querySelector('.log-empty'))logEl.innerHTML='';
-  const e=document.createElement('div');
-  e.style.cssText='padding:3px 0;color:#555;font-family:var(--mono);font-size:11px;border-bottom:1px solid #111';
-  e.innerHTML=`<span style="color:#333">[${new Date().toLocaleTimeString()}]</span> <span style="color:#e8a435">${cl}</span> > ${cmd} <span style="color:#2a2a2a">// pending</span>`;
-  logEl.appendChild(e);inp.value='';
-  document.getElementById('s-pend').textContent=chipsEl.children.length;
-}
-document.getElementById('cmd-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendCmd()});
 </script>
 </body>
 </html>
