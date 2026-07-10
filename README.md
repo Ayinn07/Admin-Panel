@@ -20,11 +20,11 @@
 Berikut adalah tampilan antarmuka dari simulasi proyek ini:
 
 ### 🌐 Landing Page
-![Landing Page Preview](assets/landing-page-preview.png)
+![Landing Page Preview](assets/image-landingpage.png)
 *Keterangan singkat mengenai aset visual (menggunakan latar belakang `blackhole.mp4`).*
 
 ### 🎮 C2 Management Dashboard
-![C2 Dashboard Preview](assets/dashboard-preview.png)
+![C2 Dashboard Preview](assets/image-panel.png)
 *Tampilan panel utama tempat simulasi pengiriman perintah dan pemantauan agen.*
 
 ---
