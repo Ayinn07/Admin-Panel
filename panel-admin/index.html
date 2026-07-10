@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOID SYSTEM v2.4.1</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        :root {
+            --bg-main: #060402; --bg-panel: #0d0905; --bg-input: #140e08;
+            --border-color: rgba(212, 114, 28, 0.15);
+            --accent-highlight: #D9822B; --accent-highlight-alt: #E59849;
+            --accent-title: #D18E4D; --accent-muted: #A67343;
+            --primary-orange: #D9822B; --primary-glow: rgba(217, 130, 43, 0.3);
+            --text-muted: #8c8276; --text-light: #e6e1da;
+        }
+        body { background-color: #000; color: var(--text-light); height: 100vh; overflow: hidden; font-size: 13px; position: relative; }
+        #bh-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        #bh-bg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        #bh-bg video.hidden { opacity: 0; }
+        #bh-bg::after { content: ''; position: absolute; inset: 0; background: rgba(6,4,2,0.72); z-index: 1; }
+        .app-container { position: relative; z-index: 2; }
+
+        /* VOMIT-OUT INTRO */
+        #intro-veil { position: fixed; inset: 0; z-index: 50; background: #000; pointer-events: all; transition: opacity 0.35s ease; }
+        #intro-veil.gone { opacity: 0; pointer-events: none; }
+        .singularitas-style { font-family: 'Orbitron', sans-serif; font-weight: 700; color: transparent !important; -webkit-text-stroke: 1px var(--accent-title); filter: drop-shadow(0 0 5px rgba(209, 142, 77, 0.3)); letter-spacing: 2px; }
+        .singularitas-style-bold { font-family: 'Orbitron', sans-serif; font-weight: 900; color: transparent !important; -webkit-text-stroke: 1.5px var(--accent-title); filter: drop-shadow(0 0 8px rgba(209, 142, 77, 0.4)); letter-spacing: 3px; }
+        .app-container { display: flex; width: 100vw; height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar { width: 240px; background: rgba(13,9,5,0.7); backdrop-filter: blur(6px); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between; padding: 20px 0; }
+        .sidebar-top { display: flex; flex-direction: column; gap: 25px; }
+        .brand { padding: 0 20px; font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: var(--accent-title); display: flex; align-items: center; gap: 10px; }
+        .menu-section { display: flex; flex-direction: column; gap: 5px; }
+        .menu-item { padding: 10px 20px; color: var(--accent-muted); text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: all 0.2s; border-left: 3px solid transparent; cursor: pointer; }
+        .menu-item-left { display: flex; align-items: center; gap: 12px; }
+        .menu-item i { width: 16px; text-align: center; font-size: 14px; }
+        .menu-item:hover { background: rgba(217, 130, 43, 0.05); color: var(--accent-highlight); }
+        .menu-item.active { background: linear-gradient(90deg, rgba(217, 130, 43, 0.15), transparent); color: #fff; border-left-color: var(--accent-highlight); font-weight: 500; }
+        .sidebar-bottom { padding: 0 20px; display: flex; flex-direction: column; gap: 15px; }
+        .blackhole-container { width: 100%; height: 100px; border-radius: 10px; position: relative; overflow: hidden; border: 1px solid rgba(217, 130, 43, 0.1); box-shadow: inset 0 0 20px rgba(0,0,0,0.8); background: #000; }
+        .blackhole-container video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        .blackhole-container video.hidden { opacity: 0; }
+        .version { font-size: 11px; color: var(--accent-muted); display: flex; align-items: center; gap: 6px; }
+
+        /* MAIN */
+        .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: transparent; }
+        .topbar { height: 60px; padding: 0 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background: rgba(6,4,2,0.4); backdrop-filter: blur(4px); }
+        .topbar-left { display: flex; align-items: center; gap: 10px; color: var(--accent-muted); }
+        .topbar-left h1 { font-size: 16px; text-transform: uppercase; }
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .system-status { font-size: 11px; display: flex; align-items: center; gap: 6px; color: #52c41a; }
+        .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-highlight); display: flex; align-items: center; justify-content: center; font-weight: bold; color: #000; font-size: 11px; }
+        .user-info .name { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        .user-info .role { font-size: 11px; color: var(--accent-muted); }
+
+        /* VIEWS */
+        .view { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+        .view.active { display: flex; }
+
+        /* DASHBOARD */
+        .workspace { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .stat-card { background: rgba(13,9,5,0.6); backdrop-filter: blur(4px); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .stat-info .label { font-size: 11px; text-transform: uppercase; color: var(--accent-muted); letter-spacing: 0.5px; }
+        .stat-info .value { font-size: 26px; margin-top: 5px; }
+        .stat-info .subtext { font-size: 11px; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+        .subtext.green { color: #52c41a; } .subtext.muted { color: var(--accent-muted); }
+        .stat-card i.icon-bg { font-size: 20px; color: rgba(217, 130, 43, 0.2); margin-top: 4px; }
+        .middle-grid { display: grid; grid-template-columns: 340px 1fr; gap: 15px; }
+        .panel { background: rgba(13,9,5,0.6); backdrop-filter: blur(4px); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; }
+        .panel-header { padding: 15px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-muted); }
+        .device-controls { padding: 12px; display: flex; gap: 8px; }
+        .search-wrapper { position: relative; flex: 1; }
+        .search-wrapper i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--accent-muted); }
+        .search-wrapper input { width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 10px 8px 30px; color: #fff; font-size: 12px; }
+        .filter-select { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-light); padding: 0 10px; font-size: 12px; }
+        .device-list { padding: 0 12px 12px 12px; display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; }
+        .device-item { background: var(--bg-input); border: 1px solid rgba(217, 130, 43, 0.05); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
+        .device-item:hover, .device-item.selected { border-color: var(--accent-highlight); box-shadow: 0 0 10px rgba(217, 130, 43, 0.1); }
+        .device-item.selected { background: rgba(217, 130, 43, 0.03); }
+        .device-info-block { display: flex; align-items: center; gap: 10px; }
+        .device-info-block i { font-size: 16px; color: var(--accent-muted); }
+        .device-item.selected .device-info-block i { color: var(--accent-highlight); }
+        .device-meta b { display: block; font-size: 12px; color: #fff; }
+        .device-meta small { color: var(--accent-muted); }
+        .device-status-badge { display: flex; align-items: center; gap: 5px; font-size: 11px; }
+        .device-status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+        .device-status-badge.online { color: #52c41a; } .device-status-badge.online::before { background: #52c41a; }
+        .device-status-badge.offline { color: #f5222d; } .device-status-badge.offline::before { background: #f5222d; }
+        .add-device-btn { margin: 0 12px 12px 12px; background: transparent; border: 1px dashed var(--border-color); border-radius: 6px; padding: 10px; color: var(--accent-muted); text-align: center; cursor: pointer; transition: all 0.2s; }
+        .add-device-btn:hover { border-color: var(--accent-highlight); color: var(--accent-highlight); }
+        .console-meta-row { padding: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border-color); }
+        .meta-selectors { display: flex; align-items: center; gap: 15px; }
+        .meta-selectors label { color: var(--accent-muted); }
+        .meta-selectors select { background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 5px 10px; border-radius: 4px; }
+        .session-info { display: flex; align-items: center; gap: 8px; color: var(--accent-muted); }
+        .session-badge { background: var(--bg-input); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; color: #fff; font-family: monospace; display: flex; align-items: center; gap: 6px; }
+        .command-input-container { padding: 15px; position: relative; }
+        .command-input-container textarea { width: 100%; height: 100px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #fff; padding: 12px; font-family: monospace; resize: none; outline: none; }
+        .send-btn { position: absolute; right: 25px; bottom: 25px; background: linear-gradient(135deg, #D9822B, #A67343); border: none; color: #fff; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+        .send-btn:hover { opacity: 0.9; }
+        .console-tabs { display: flex; padding: 0 15px; border-bottom: 1px solid var(--border-color); gap: 20px; }
+        .console-tab { padding: 10px 0; color: var(--accent-muted); cursor: pointer; position: relative; font-weight: 500; }
+        .console-tab.active { color: var(--accent-highlight); }
+        .console-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--accent-highlight); }
+        .quick-commands { padding: 15px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .quick-cmd-btn { background: var(--bg-input); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 4px; cursor: pointer; color: var(--accent-muted); font-family: monospace; font-size: 11px; transition: all 0.2s; }
+        .quick-cmd-btn:hover { border-color: var(--accent-highlight); color: var(--accent-highlight-alt); background: rgba(217, 130, 43, 0.05); }
+        .log-panel { flex: 1; min-height: 200px; }
+        .log-header-actions { display: flex; align-items: center; gap: 15px; }
+        .toggle-wrapper { display: flex; align-items: center; gap: 8px; color: var(--accent-muted); }
+        .switch { position: relative; display: inline-block; width: 28px; height: 16px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #332211; transition: .2s; border-radius: 34px; border: 1px solid var(--border-color); }
+        .slider:before { position: absolute; content: ""; height: 10px; width: 10px; left: 2px; bottom: 2px; background-color: var(--accent-muted); transition: .2s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-highlight); }
+        input:checked + .slider:before { transform: translateX(12px); background-color: #fff; }
+        .log-action-btn { background: transparent; border: 1px solid var(--border-color); color: var(--accent-muted); padding: 4px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 11px; transition: all 0.2s; }
+        .log-action-btn:hover { color: var(--accent-highlight); border-color: var(--accent-highlight); background: rgba(217, 130, 43, 0.05); }
+        .terminal-output { padding: 15px; background: #040301; flex: 1; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.6; color: #d4cbb3; }
+        .log-line { margin-bottom: 4px; }
+        .log-time { color: var(--accent-muted); margin-right: 8px; }
+        .log-target { color: #52c41a; margin-right: 8px; }
+        .log-cmd { color: var(--accent-highlight-alt); }
+
+        /* OUTPUT POWERSHELL FULLSCREEN */
+        .ps-fullscreen { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 15px; overflow: hidden; min-height: 0; }
+        .ps-fullscreen .ps-terminal-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .ps-terminal-wrap { flex: 1; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; }
+        .ps-terminal-header { padding: 12px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .ps-terminal-title { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-muted); display: flex; align-items: center; gap: 8px; }
+        .ps-terminal-title i { color: var(--accent-highlight); }
+        .ps-input-row { padding: 12px 15px; border-top: 1px solid var(--border-color); display: flex; gap: 10px; background: rgba(0,0,0,0.2); }
+        .ps-input-row input { flex: 1; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; color: #fff; padding: 8px 12px; font-family: monospace; font-size: 12px; outline: none; }
+        .ps-input-row input:focus { border-color: var(--accent-highlight); }
+        .ps-send-btn { background: linear-gradient(135deg, #D9822B, #A67343); border: none; color: #fff; padding: 8px 18px; border-radius: 4px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; font-size: 12px; }
+        .ps-send-btn:hover { opacity: 0.9; }
+
+        /* ===================== OUTPUT LOG VIEW ===================== */
+        .ol-view { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 14px; overflow: hidden; }
+        .ol-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .ol-heading { font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 2px; color: var(--accent-muted); display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        .ol-heading i { color: var(--accent-highlight); }
+        .ol-stats { display: flex; gap: 8px; }
+        .stat-pill { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 12px; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+        .stat-pill b { color: var(--text-light); }
+        .stat-pill.ok b { color: #52c41a; } .stat-pill.warn b { color: #faad14; } .stat-pill.err b { color: #f5222d; }
+        .ol-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .ol-search-wrap { position: relative; }
+        .ol-search-wrap i { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 11px; }
+        .ol-search-wrap input { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; color: #fff; padding: 7px 10px 7px 28px; font-size: 12px; width: 180px; outline: none; }
+        .ol-search-wrap input:focus { border-color: var(--accent-highlight); }
+        .ol-filter-btn { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-muted); padding: 6px 11px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+        .ol-filter-btn:hover { border-color: var(--accent-highlight); color: var(--accent-highlight-alt); background: rgba(217,130,43,0.06); }
+        .ol-filter-btn.active { border-color: var(--accent-highlight); color: var(--accent-highlight-alt); background: rgba(217,130,43,0.08); }
+        .ol-filter-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-highlight); display: none; }
+        .ol-filter-btn.active .ol-filter-dot { display: block; }
+        .ol-act-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 6px 11px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 11px; transition: all 0.2s; }
+        .ol-act-btn:hover { border-color: var(--accent-highlight); color: var(--accent-highlight-alt); background: rgba(217,130,43,0.05); }
+        .ol-export-btn { background: linear-gradient(135deg, #D9822B, #A67343); border: none; color: #fff; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+        .ol-export-btn:hover { opacity: 0.88; }
+
+        .ol-table-wrap { flex: 1; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+        .ol-table-head { display: grid; grid-template-columns: 80px 80px 1fr 110px 80px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border-color); padding: 0 14px; }
+        .ol-th { padding: 9px 7px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .ol-table-body { flex: 1; overflow-y: auto; }
+        .ol-row { display: grid; grid-template-columns: 80px 80px 1fr 110px 80px; border-bottom: 1px solid rgba(212,114,28,0.05); padding: 0 14px; transition: background 0.15s; cursor: pointer; align-items: center; }
+        .ol-row:hover { background: rgba(217,130,43,0.04); }
+        .ol-row.ol-selected { background: rgba(217,130,43,0.07); border-left: 2px solid var(--accent-highlight); }
+        .ol-td { padding: 9px 7px; font-size: 12px; color: var(--text-light); }
+        .ol-td.mono { font-family: 'Courier New', monospace; font-size: 11px; }
+        .ol-td.muted { color: var(--text-muted); }
+        .ol-td mark { background: rgba(217,130,43,0.22); color: var(--accent-highlight-alt); border-radius: 2px; padding: 0 2px; }
+        .ol-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+        .ol-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .ol-badge.ok { background: rgba(82,196,26,0.12); color: #52c41a; border: 1px solid rgba(82,196,26,0.22); }
+        .ol-badge.warn { background: rgba(250,173,20,0.12); color: #faad14; border: 1px solid rgba(250,173,20,0.22); }
+        .ol-badge.err { background: rgba(245,34,45,0.12); color: #f5222d; border: 1px solid rgba(245,34,45,0.22); }
+        .ol-badge.sys { background: rgba(217,130,43,0.12); color: var(--accent-highlight-alt); border: 1px solid rgba(217,130,43,0.22); }
+        .ol-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.2); font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+        .ol-footer span { color: var(--accent-highlight-alt); }
+
+        .ol-detail { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 16px; display: none; flex-direction: column; gap: 10px; flex-shrink: 0; }
+        .ol-detail.visible { display: flex; }
+        .ol-detail-header { display: flex; justify-content: space-between; align-items: center; }
+        .ol-detail-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .ol-detail-title i { color: var(--accent-highlight); }
+        .ol-detail-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; transition: color 0.2s; }
+        .ol-detail-close:hover { color: #fff; }
+        .ol-detail-meta { display: flex; gap: 16px; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; }
+        .ol-detail-meta b { color: var(--text-light); margin-left: 3px; }
+        .ol-detail-output { background: #040301; border: 1px solid var(--border-color); border-radius: 5px; padding: 10px 12px; font-family: 'Courier New', monospace; font-size: 11px; color: #d4cbb3; line-height: 1.7; white-space: pre-wrap; }
+
+        /* MAINTENANCE */
+        .maintenance-view { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow-y: auto; }
+        .maintenance-header { display: flex; align-items: center; justify-content: space-between; }
+        .maintenance-title { font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 1px; color: var(--accent-muted); display: flex; align-items: center; gap: 10px; }
+        .maintenance-title i { color: var(--accent-highlight); }
+        .export-panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; }
+        .export-panel-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-muted); }
+        .export-panel-header i { color: var(--accent-highlight); }
+        .export-body { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .export-desc { font-size: 12px; color: var(--accent-muted); line-height: 1.6; }
+        .export-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .export-option-card { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: all 0.2s; }
+        .export-option-card:hover { border-color: var(--accent-highlight); box-shadow: 0 0 12px rgba(217, 130, 43, 0.1); }
+        .export-option-card.selected { border-color: var(--accent-highlight); background: rgba(217, 130, 43, 0.05); }
+        .export-option-icon { font-size: 22px; color: var(--accent-highlight); }
+        .export-option-label { font-weight: 600; font-size: 12px; color: #fff; }
+        .export-option-desc { font-size: 11px; color: var(--accent-muted); }
+        .export-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 5px; }
+        .export-meta { font-size: 11px; color: var(--accent-muted); display: flex; align-items: center; gap: 6px; }
+        .export-meta span { color: var(--accent-highlight-alt); }
+        .export-btn { background: linear-gradient(135deg, #D9822B, #A67343); border: none; color: #fff; padding: 10px 24px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; letter-spacing: 0.5px; }
+        .export-btn:hover { opacity: 0.9; }
+        .export-log-preview { background: #040301; border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; font-family: monospace; font-size: 11px; color: #d4cbb3; line-height: 1.6; max-height: 160px; overflow-y: auto; }
+        .export-log-label { font-size: 11px; color: var(--accent-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: #261a0f; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-highlight); }
+    </style>
+</head>
+<body>
+
+<div id="bh-bg">
+    <video id="bh-a" muted playsinline></video>
+    <video id="bh-b" muted playsinline class="hidden"></video>
+</div>
+
+<div id="intro-veil"></div>
+
+<div class="app-container">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-top">
+            <div class="brand">
+                <i class="fa-solid fa-circle-nodes"></i> VOID <span class="singularitas-style" style="margin-left:5px">SYSTEM</span>
+            </div>
+            <div class="menu-section">
+                <a href="#" class="menu-item active" data-view="dashboard">
+                    <div class="menu-item-left"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
+                </a>
+                <a href="#" class="menu-item" data-view="output-log">
+                    <div class="menu-item-left"><i class="fa-solid fa-file-lines"></i> Output Log</div>
+                </a>
+                <a href="#" class="menu-item" data-view="output-powershell">
+                    <div class="menu-item-left"><i class="fa-solid fa-terminal"></i> Output Powershell</div>
+                </a>
+                <a href="#" class="menu-item" data-view="maintenance">
+                    <div class="menu-item-left"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</div>
+                </a>
+            </div>
+        </div>
+        <div class="sidebar-bottom">
+            <div class="blackhole-container">
+                <video id="bh-s-a" muted playsinline></video>
+                <video id="bh-s-b" muted playsinline class="hidden"></video>
+            </div>
+            <div class="version">
+                <i class="fa-solid fa-circle-info"></i> VOID OS v2.4.1
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <i class="fa-solid fa-gauge-high" style="color:var(--accent-muted)"></i>
+                <span style="color:var(--accent-muted);margin:0 8px">/</span>
+                <h1 class="singularitas-style-bold" id="page-title">Dashboard</h1>
+            </div>
+            <div class="topbar-right">
+                <div class="system-status">SYSTEM ACTIVE</div>
+                <div class="user-profile">
+                    <div class="user-info">
+                        <div class="name">Administrator <i class="fa-solid fa-chevron-down" style="font-size:10px;color:var(--accent-muted)"></i></div>
+                        <div class="role">Superuser</div>
+                    </div>
+                    <div class="user-avatar">A</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: DASHBOARD -->
+        <div class="view active" id="view-dashboard">
+            <div class="workspace">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <div class="label">Total Devices</div>
+                            <div class="value singularitas-style-bold">24</div>
+                            <div class="subtext green"><i class="fa-solid fa-circle" style="font-size:6px"></i> Online 18</div>
+                        </div>
+                        <i class="fa-solid fa-desktop icon-bg"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <div class="label">Active Sessions</div>
+                            <div class="value singularitas-style-bold">7</div>
+                            <div class="subtext muted">View all sessions &rarr;</div>
+                        </div>
+                        <i class="fa-solid fa-heartbeat icon-bg"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <div class="label">Commands Sent</div>
+                            <div class="value singularitas-style-bold">152</div>
+                            <div class="subtext muted"><i class="fa-solid fa-circle" style="font-size:6px"></i> Today</div>
+                        </div>
+                        <i class="fa-solid fa-paper-plane icon-bg"></i>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <div class="label">Success Rate</div>
+                            <div class="value singularitas-style-bold">98.7%</div>
+                            <div class="subtext green"><i class="fa-solid fa-arrow-trend-up"></i> +2.1%</div>
+                        </div>
+                        <i class="fa-solid fa-bullseye icon-bg"></i>
+                    </div>
+                </div>
+                <div class="middle-grid">
+                    <div class="panel">
+                        <div class="panel-header">Device List</div>
+                        <div class="device-controls">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" placeholder="Search devices...">
+                            </div>
+                            <select class="filter-select"><option>All Status</option></select>
+                        </div>
+                        <div class="device-list">
+                            <div class="device-item" data-id="DEV-001" data-ip="192.168.1.10">
+                                <div class="device-info-block"><i class="fa-solid fa-desktop"></i><div class="device-meta"><b>DEV-001</b><small>192.168.1.10</small></div></div>
+                                <div class="device-status-badge online">Online</div>
+                            </div>
+                            <div class="device-item selected" data-id="DEV-002" data-ip="192.168.1.11">
+                                <div class="device-info-block"><i class="fa-solid fa-desktop"></i><div class="device-meta"><b>DEV-002</b><small>192.168.1.11</small></div></div>
+                                <div class="device-status-badge online">Online</div>
+                            </div>
+                            <div class="device-item" data-id="DEV-003" data-ip="192.168.1.12">
+                                <div class="device-info-block"><i class="fa-solid fa-desktop"></i><div class="device-meta"><b>DEV-003</b><small>192.168.1.12</small></div></div>
+                                <div class="device-status-badge online">Online</div>
+                            </div>
+                            <div class="device-item" data-id="DEV-004" data-ip="192.168.1.13">
+                                <div class="device-info-block"><i class="fa-solid fa-desktop"></i><div class="device-meta"><b>DEV-004</b><small>192.168.1.13</small></div></div>
+                                <div class="device-status-badge offline">Offline</div>
+                            </div>
+                        </div>
+                        <div class="add-device-btn"><i class="fa-solid fa-plus"></i> Add Device</div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">Command Console</div>
+                        <div class="console-meta-row">
+                            <div class="meta-selectors">
+                                <label>Target</label>
+                                <select id="target-select">
+                                    <option>DEV-002 (192.168.1.11)</option>
+                                    <option>DEV-001 (192.168.1.10)</option>
+                                </select>
+                            </div>
+                            <div class="session-info">
+                                <span>Session</span>
+                                <div class="session-badge">#S-7F3K2L9 <i class="fa-regular fa-copy" style="cursor:pointer;font-size:11px"></i></div>
+                            </div>
+                        </div>
+                        <div class="command-input-container">
+                            <textarea id="cmd-textarea" placeholder="Enter command..."></textarea>
+                            <button class="send-btn" id="execute-btn"><i class="fa-solid fa-paper-plane"></i> Send Command</button>
+                        </div>
+                        <div class="console-tabs">
+                            <div class="console-tab active">QUICK COMMANDS</div>
+                            <div class="console-tab">TEMPLATES</div>
+                            <div class="console-tab">RECENT COMMANDS</div>
+                        </div>
+                        <div class="quick-commands">
+                            <button class="quick-cmd-btn">systeminfo</button>
+                            <button class="quick-cmd-btn">ipconfig /all</button>
+                            <button class="quick-cmd-btn">whoami</button>
+                            <button class="quick-cmd-btn">tasklist</button>
+                            <button class="quick-cmd-btn">ping google.com</button>
+                            <button class="quick-cmd-btn">net user</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel log-panel">
+                    <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center">
+                        <span><i class="fa-solid fa-terminal" style="color:var(--accent-highlight);margin-right:6px"></i> Output Powershell</span>
+                        <div class="log-header-actions">
+                            <div class="toggle-wrapper">
+                                <span>Auto Scroll</span>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="terminal-output" id="terminal-screen"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: OUTPUT LOG -->
+        <div class="view" id="view-output-log">
+            <div class="ol-view">
+                <div class="ol-topbar">
+                    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                        <div class="ol-heading"><i class="fa-solid fa-file-lines"></i> Output Log</div>
+                        <div class="ol-stats">
+                            <div class="stat-pill ok"><b id="ol-cnt-ok">0</b>&nbsp;OK</div>
+                            <div class="stat-pill warn"><b id="ol-cnt-warn">0</b>&nbsp;Warn</div>
+                            <div class="stat-pill err"><b id="ol-cnt-err">0</b>&nbsp;Error</div>
+                            <div class="stat-pill"><b id="ol-cnt-sys">0</b>&nbsp;Sys</div>
+                        </div>
+                    </div>
+                    <div class="ol-controls">
+                        <div class="ol-search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="ol-search" placeholder="Search output...">
+                        </div>
+                        <button class="ol-filter-btn active" id="olbtn-all" onclick="olSetFilter('all')">
+                            <i class="fa-solid fa-layer-group"></i> All <div class="ol-filter-dot"></div>
+                        </button>
+                        <button class="ol-filter-btn" id="olbtn-ok" onclick="olSetFilter('ok')">
+                            <i class="fa-solid fa-circle-check" style="color:#52c41a"></i> OK <div class="ol-filter-dot"></div>
+                        </button>
+                        <button class="ol-filter-btn" id="olbtn-warn" onclick="olSetFilter('warn')">
+                            <i class="fa-solid fa-triangle-exclamation" style="color:#faad14"></i> Warn <div class="ol-filter-dot"></div>
+                        </button>
+                        <button class="ol-filter-btn" id="olbtn-err" onclick="olSetFilter('err')">
+                            <i class="fa-solid fa-circle-xmark" style="color:#f5222d"></i> Error <div class="ol-filter-dot"></div>
+                        </button>
+                        
+                    </div>
+                </div>
+
+                <div class="ol-table-wrap">
+                    <div class="ol-table-head">
+                        <div class="ol-th"><i class="fa-solid fa-clock"></i>&nbsp;Time</div>
+                        <div class="ol-th"><i class="fa-solid fa-desktop"></i>&nbsp;Device</div>
+                        <div class="ol-th"><i class="fa-solid fa-terminal"></i>&nbsp;Output</div>
+                        <div class="ol-th"><i class="fa-solid fa-tag"></i>&nbsp;Source Cmd</div>
+                        <div class="ol-th"><i class="fa-solid fa-circle-half-stroke"></i>&nbsp;Status</div>
+                    </div>
+                    <div class="ol-table-body" id="ol-body"></div>
+                    <div class="ol-footer">
+                        <span>Showing <span id="ol-showing">0</span> of <span id="ol-total">0</span> entries</span>
+                        <span>Session: <span>#S-7F3K2L9</span></span>
+                    </div>
+                </div>
+
+                <div class="ol-detail" id="ol-detail">
+                    <div class="ol-detail-header">
+                        <div class="ol-detail-title"><i class="fa-solid fa-eye"></i> Entry Detail</div>
+                        <button class="ol-detail-close" onclick="olCloseDetail()"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="ol-detail-meta" id="ol-detail-meta"></div>
+                    <div class="ol-detail-output" id="ol-detail-output"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: OUTPUT POWERSHELL FULLSCREEN -->
+        <div class="view" id="view-output-powershell">
+            <div class="ps-fullscreen">
+                <div class="ps-terminal-wrap">
+                    <div class="ps-terminal-header">
+                        <div class="ps-terminal-title">
+                            <i class="fa-solid fa-terminal"></i>
+                            Output Powershell — Full View
+                        </div>
+                        <div class="log-header-actions">
+                            <div class="toggle-wrapper">
+                                <span>Auto Scroll</span>
+                                <label class="switch"><input type="checkbox" id="ps-autoscroll" checked><span class="slider"></span></label>
+                            </div>
+                            <button class="log-action-btn" id="ps-clear-btn"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                            <button class="log-action-btn" id="ps-export-btn"><i class="fa-solid fa-download"></i> Export</button>
+                        </div>
+                    </div>
+                    <div class="terminal-output" id="ps-terminal-screen" style="flex:1;min-height:0"></div>
+                    <div class="ps-input-row">
+                        <input type="text" id="ps-cmd-input" placeholder="Enter command...">
+                        <button class="ps-send-btn" id="ps-execute-btn"><i class="fa-solid fa-paper-plane"></i> Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: MAINTENANCE -->
+        <div class="view" id="view-maintenance">
+            <div class="maintenance-view">
+                <div class="maintenance-header">
+                    <div class="maintenance-title">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> Maintenance &amp; Tools
+                    </div>
+                </div>
+                <div class="export-panel">
+                    <div class="export-panel-header"><i class="fa-solid fa-download"></i> Export Output Log</div>
+                    <div class="export-body">
+                        <p class="export-desc">Export seluruh output log sesi saat ini ke file. Pilih format ekspor yang diinginkan, lalu klik tombol Export.</p>
+                        <div class="export-options">
+                            <div class="export-option-card selected" data-format="txt" onclick="selectExportFormat(this)">
+                                <div class="export-option-icon"><i class="fa-solid fa-file-lines"></i></div>
+                                <div class="export-option-label">Plain Text (.txt)</div>
+                                <div class="export-option-desc">Format teks biasa, kompatibel dengan semua editor.</div>
+                            </div>
+                            <div class="export-option-card" data-format="csv" onclick="selectExportFormat(this)">
+                                <div class="export-option-icon"><i class="fa-solid fa-file-csv"></i></div>
+                                <div class="export-option-label">CSV (.csv)</div>
+                                <div class="export-option-desc">Format tabular, cocok untuk dibuka di spreadsheet.</div>
+                            </div>
+                            <div class="export-option-card" data-format="json" onclick="selectExportFormat(this)">
+                                <div class="export-option-icon"><i class="fa-solid fa-file-code"></i></div>
+                                <div class="export-option-label">JSON (.json)</div>
+                                <div class="export-option-desc">Format terstruktur untuk integrasi atau analisis lanjutan.</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="export-log-label">Preview Log (terkini)</div>
+                            <div class="export-log-preview" id="export-preview"></div>
+                        </div>
+                        <div class="export-footer">
+                            <div class="export-meta">Total entri: <span id="export-count">0</span> &nbsp;|&nbsp; Format: <span id="export-format-label">TXT</span></div>
+                            <button class="export-btn" id="do-export-btn"><i class="fa-solid fa-download"></i> Export Sekarang</button>
+                            <button class="export-btn" id="do-delete-btn" style="background:linear-gradient(135deg,#c0392b,#922b21);margin-left:8px"><i class="fa-solid fa-trash-can"></i> Hapus DB</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ==========================================
+// STATE
+// ==========================================
+// sharedLog per device: { clientId: [{time,target,type,text}] }
+const deviceLogs = {};  // raw powershell log per device
+const outputLog = [];   // output log hanya dari Command Console
+let lastOutputId = 0;
+let clients = [];
+let selectedClientId = null;
+
+// Helper: get or create log array for a device
+function getDeviceLog(clientId) {
+    if (!deviceLogs[clientId]) deviceLogs[clientId] = [];
+    return deviceLogs[clientId];
+}
+
+// sharedLog = alias ke log device yang sedang dipilih (untuk fungsi lama)
+function getActiveLog() {
+    return selectedClientId ? getDeviceLog(selectedClientId) : [];
+}
+
+// ==========================================
+// HELPERS (sama persis logika asli)
+// ==========================================
+function inferStatus(text) {
+    const t = (text||'').toLowerCase();
+    if (t.includes('error') || t.includes('failed') || t.includes('timeout') || t.includes('timed out')) return 'err';
+    if (t.includes('warning') || t.includes('warn') || t.includes('above') || t.includes('loss')) return 'warn';
+    if (t.includes('success') || t.includes('queued') || t.includes('session')) return 'sys';
+    return 'ok';
+}
+
+function rebuildOutputLog() {
+    // outputLog diisi manual dari Command Console, tidak perlu rebuild dari deviceLogs
+}
+
+function renderLogToScreen(screenEl, logArray) {
+    if (!screenEl) return;
+    screenEl.innerHTML = logArray.map(entry => {
+        if (entry.type === 'cmd') return `<div class="log-line"><span class="log-time">[${entry.time}]</span><span class="log-target">[${entry.target}]</span><span class="log-cmd">> ${entry.text}</span></div>`;
+        if (entry.type === 'out') return `<div class="log-line"><span class="log-time">[${entry.time}]</span><span class="log-target">[${entry.target}]</span> ${entry.text}</div>`;
+        return `<div class="log-line"><span class="log-time">[${entry.time}]</span> ${entry.text}</div>`;
+    }).join('');
+}
+
+// Render powershell screens dengan log device yang dipilih
+function renderActiveScreens() {
+    const log = getActiveLog();
+    renderLogToScreen(document.getElementById('terminal-screen'), log);
+    renderLogToScreen(document.getElementById('ps-terminal-screen'), log);
+    ['terminal-screen','ps-terminal-screen'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.scrollTop = el.scrollHeight;
+    });
+}
+
+function addLogEntry(entry) {
+    // Tambah ke deviceLog yang sesuai (untuk powershell view)
+    const target = entry.target || selectedClientId;
+    if (target) getDeviceLog(target).push(entry);
+    renderActiveScreens();
+    olRender();
+    updateExportPreview();
+}
+
+function updateExportPreview() {
+    const preview = document.getElementById('export-preview');
+    if (!preview) return;
+    const log = getActiveLog();
+    const lines = log.slice(-8).map(e => {
+        if (e.type === 'cmd') return `[${e.time}] [${e.target}] > ${e.text}`;
+        if (e.type === 'out') return `[${e.time}] [${e.target}]   ${e.text}`;
+        return `[${e.time}] ${e.text}`;
+    });
+    preview.textContent = lines.join('\n');
+    const countEl = document.getElementById('export-count');
+    if (countEl) countEl.textContent = outputLog.length;
+}
+
+function fmtTime(dateStr) {
+    return new Date(dateStr).toTimeString().split(' ')[0];
+}
+
+// Parse rows DB dan simpan ke deviceLogs per client_id
+function parseAndStoreDBRows(rows) {
+    for (const row of rows) {
+        const time = fmtTime(row.received_at);
+        const target = row.client_id;
+        const raw = (row.output || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+        const lines = raw.split('\n').filter(l => l.trim() && l !== 'CMDOK' && l !== 'CMDERR');
+        // Powershell view: per line
+        const log = getDeviceLog(target);
+        for (const line of lines) {
+            log.push({ time, target, type:'out', text:line, _dbId:row.id });
+        }
+        // Output log: satu entry per DB row
+        const outputText = lines.join('\n').trim();
+        if (outputText) {
+            outputLog.push({
+                time, device: target,
+                output: outputText,
+                cmd: '', // akan diisi jika ada relasi command
+                status: inferStatus(outputText),
+            });
+        }
+    }
+}
+
+// ==========================================
+// RENDER DEVICE LIST (update HTML yang ada)
+// ==========================================
+function renderDeviceList() {
+    const list = document.querySelector('.device-list');
+    if (!list) return;
+
+    // Auto-select first jika belum ada pilihan
+    if (!selectedClientId && clients.length > 0) {
+        selectedClientId = clients[0].client_id;
+    }
+
+    if (clients.length === 0) {
+        list.innerHTML = '<div style="padding:12px;color:var(--accent-muted);font-size:12px;text-align:center">— no devices —</div>';
+    } else {
+        list.innerHTML = clients.map(c => {
+            const online = (Date.now() - new Date(c.last_seen).getTime()) < 90000;
+            const isSelected = c.client_id === selectedClientId;
+            return `<div class="device-item${isSelected ? ' selected' : ''}" data-id="${c.client_id}" data-ip="${c.ip||''}">
+                <div class="device-info-block"><i class="fa-solid fa-desktop"></i>
+                    <div class="device-meta"><b>${c.client_id}</b><small>${c.ip||'—'}</small></div>
+                </div>
+                <div class="device-status-badge ${online?'online':'offline'}">${online?'Online':'Offline'}</div>
+            </div>`;
+        }).join('');
+        // Re-attach click handlers
+        document.querySelectorAll('.device-item').forEach(item => {
+            item.addEventListener('click', () => {
+                selectedClientId = item.getAttribute('data-id');
+                document.querySelectorAll('.device-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                const sel = document.getElementById('target-select');
+                if (sel) sel.value = selectedClientId;
+                // Ganti device → render ulang powershell view
+                renderActiveScreens();
+            });
+        });
+    }
+
+    // Update target-select tanpa reset pilihan
+    const sel = document.getElementById('target-select');
+    if (sel) {
+        sel.innerHTML = clients.map(c => `<option value="${c.client_id}">${c.client_id} (${c.ip||'—'})</option>`).join('');
+        if (selectedClientId) sel.value = selectedClientId;
+    }
+}
+
+function updateStats() {
+    const onlineCount = clients.filter(c => (Date.now() - new Date(c.last_seen).getTime()) < 90000).length;
+    // Stat cards: cari by label text lalu update value
+    document.querySelectorAll('.stat-card').forEach(card => {
+        const label = card.querySelector('.label');
+        const val   = card.querySelector('.value');
+        const sub   = card.querySelector('.subtext');
+        if (!label || !val) return;
+        const lbl = label.textContent.trim().toLowerCase();
+        if (lbl.includes('total device')) {
+            val.textContent = clients.length;
+            if (sub) sub.innerHTML = `<i class="fa-solid fa-circle" style="font-size:6px"></i> Online ${onlineCount}`;
+        } else if (lbl.includes('commands sent')) {
+            val.textContent = outputLog.length;
+        } else if (lbl.includes('success rate')) {
+            const total = outputLog.length;
+            const ok = outputLog.filter(e=>e.status==='ok').length;
+            val.textContent = total > 0 ? ((ok/total)*100).toFixed(1)+'%' : '—';
+        }
+    });
+}
+
+// ==========================================
+// FETCH BACKEND
+// ==========================================
+async function fetchInitialData() {
+    try {
+        const res = await fetch('/api/data');
+        const data = await res.json();
+        clients = data.clients || [];
+
+        const sorted = (data.outputs || []).reverse(); // oldest first
+        if (sorted.length) lastOutputId = Math.max(...sorted.map(r=>r.id));
+
+        parseAndStoreDBRows(sorted);
+
+        renderDeviceList();
+        updateStats();
+        renderActiveScreens();
+        olRender();
+        updateExportPreview();
+    } catch(err) { console.error('[INIT]', err); }
+}
+
+async function pollNewData() {
+    try {
+        // Output baru
+        const res = await fetch(`/api/outputs?since=${lastOutputId}`);
+        const rows = await res.json();
+        if (rows.length) {
+            const sorted = rows.reverse();
+            lastOutputId = Math.max(...sorted.map(r=>r.id));
+            parseAndStoreDBRows(sorted);
+            renderActiveScreens();
+            olRender();
+            updateExportPreview();
+        }
+        // Clients update
+        const cr = await fetch('/api/clients');
+        clients = await cr.json();
+        renderDeviceList();
+        updateStats();
+    } catch(err) { console.error('[POLL]', err); }
+}
+
+// ==========================================
+// NAVIGATION (sama persis asli)
+// ==========================================
+const pageTitles = { dashboard:'Dashboard', 'output-log':'Output Log', 'output-powershell':'Output Powershell', maintenance:'Maintenance' };
+document.querySelectorAll('.menu-item[data-view]').forEach(item => {
+    item.addEventListener('click', e => {
+        e.preventDefault();
+        const viewId = item.getAttribute('data-view');
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        item.classList.add('active');
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        document.getElementById('page-title').textContent = pageTitles[viewId] || viewId;
+        if (viewId === 'maintenance') updateExportPreview();
+        if (viewId === 'output-log') olRender();
+    });
+});
+
+// ==========================================
+// DASHBOARD: Quick Commands & Device Select
+// ==========================================
+document.querySelectorAll('.quick-cmd-btn').forEach(btn => {
+    btn.addEventListener('click', () => { document.getElementById('cmd-textarea').value = btn.innerText; });
+});
+
+document.getElementById('execute-btn').addEventListener('click', async () => {
+    const cmdText = document.getElementById('cmd-textarea').value.trim();
+    if (!cmdText) return;
+    const sel = document.getElementById('target-select');
+    const clientId = sel ? sel.value : '';
+    if (!clientId) { alert('Pilih target device'); return; }
+    const timeStr = new Date().toTimeString().split(' ')[0];
+    // Tambah ke deviceLog (powershell view)
+    getDeviceLog(clientId).push({ time:timeStr, target:clientId, type:'cmd', text:cmdText });
+    // Tambah ke outputLog (output log view) — akan diisi outputnya saat polling
+    const cmdEntry = { time:timeStr, device:clientId, output:'', cmd:cmdText, status:'ok', pending:true };
+    outputLog.push(cmdEntry);
+    renderActiveScreens();
+    olRender();
+    document.getElementById('cmd-textarea').value = '';
+    try {
+        await fetch('/api/send', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ client_id:clientId, command:cmdText })
+        });
+    } catch(err) { console.error('[SEND]', err); }
+});
+
+// ==========================================
+// POWERSHELL FULLSCREEN
+// ==========================================
+document.getElementById('ps-execute-btn').addEventListener('click', async () => {
+    const input = document.getElementById('ps-cmd-input');
+    const cmdText = input.value.trim();
+    if (!cmdText) return;
+    const sel = document.querySelector('.device-item.selected');
+    const clientId = sel ? sel.getAttribute('data-id') : (document.getElementById('target-select')?.value || '');
+    if (!clientId) { alert('Pilih target device'); return; }
+    const timeStr = new Date().toTimeString().split(' ')[0];
+    // Hanya ke deviceLog (powershell view), TIDAK masuk outputLog
+    getDeviceLog(clientId).push({ time:timeStr, target:clientId, type:'cmd', text:cmdText });
+    renderActiveScreens();
+    input.value = '';
+    try {
+        await fetch('/api/send', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ client_id:clientId, command:cmdText })
+        });
+    } catch(err) { console.error('[SEND]', err); }
+});
+document.getElementById('ps-cmd-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('ps-execute-btn').click();
+});
+document.getElementById('ps-clear-btn').addEventListener('click', () => {
+    if (selectedClientId) deviceLogs[selectedClientId] = [];
+    renderActiveScreens();
+});
+
+// ==========================================
+// OUTPUT LOG VIEW (sama persis asli)
+// ==========================================
+let olFilter = 'all';
+let olSearch = '';
+
+function olGetBadge(status) {
+    const map = { ok:'<span class="ol-badge ok">OK</span>', warn:'<span class="ol-badge warn">Warning</span>', err:'<span class="ol-badge err">Error</span>', sys:'<span class="ol-badge sys">System</span>' };
+    return map[status] || '';
+}
+
+function olHighlight(text, q) {
+    if (!q) return text;
+    return text.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'), '<mark>$1</mark>');
+}
+
+function olRender() {
+    const q = olSearch.toLowerCase();
+    const filtered = outputLog.filter(e => {
+        const mf = olFilter === 'all' || e.status === olFilter;
+        const ms = !q || e.output.toLowerCase().includes(q) || e.device.toLowerCase().includes(q) || e.cmd.toLowerCase().includes(q);
+        return mf && ms;
+    });
+
+    document.getElementById('ol-cnt-ok').textContent   = outputLog.filter(e=>e.status==='ok').length;
+    document.getElementById('ol-cnt-warn').textContent = outputLog.filter(e=>e.status==='warn').length;
+    document.getElementById('ol-cnt-err').textContent  = outputLog.filter(e=>e.status==='err').length;
+    document.getElementById('ol-cnt-sys').textContent  = outputLog.filter(e=>e.status==='sys').length;
+    document.getElementById('ol-total').textContent    = outputLog.length;
+    document.getElementById('ol-showing').textContent  = filtered.length;
+
+    document.getElementById('ol-body').innerHTML = filtered.map((e) => {
+        const idx = outputLog.indexOf(e);
+        return `<div class="ol-row" id="olrow-${idx}" onclick="olSelectRow(${idx})">
+            <div class="ol-td mono muted">${e.time}</div>
+            <div class="ol-td mono" style="color:var(--accent-highlight-alt)">${e.device}</div>
+            <div class="ol-td">${olHighlight(e.output, olSearch)}</div>
+            <div class="ol-td mono muted" style="font-size:10px">${e.cmd}</div>
+            <div class="ol-td">${olGetBadge(e.status)}</div>
+        </div>`;
+    }).join('');
+}
+
+function olSetFilter(f) {
+    olFilter = f;
+    document.querySelectorAll('.ol-filter-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('olbtn-' + f).classList.add('active');
+    olCloseDetail();
+    olRender();
+}
+
+function olSelectRow(idx) {
+    document.querySelectorAll('.ol-row').forEach(r => r.classList.remove('ol-selected'));
+    const r = document.getElementById('olrow-' + idx);
+    if (r) r.classList.add('ol-selected');
+    const e = outputLog[idx];
+    if (!e) return;
+    document.getElementById('ol-detail').classList.add('visible');
+    document.getElementById('ol-detail-meta').innerHTML =
+        `<span>Time: <b>${e.time}</b></span>
+         <span>Device: <b>${e.device}</b></span>
+         <span>Source Command: <b>${e.cmd || '—'}</b></span>
+         <span>Status: <b>${e.status.toUpperCase()}</b></span>`;
+    document.getElementById('ol-detail-output').textContent = e.output;
+}
+
+function olCloseDetail() {
+    document.getElementById('ol-detail').classList.remove('visible');
+    document.querySelectorAll('.ol-row').forEach(r => r.classList.remove('ol-selected'));
+}
+
+function olClear() {
+    outputLog.length = 0;
+    olCloseDetail();
+    olRender();
+    updateExportPreview();
+}
+
+function olExport() {
+    const lines = outputLog.map(e => `[${e.time}] [${e.device}] [${e.status.toUpperCase()}] ${e.output}  (cmd: ${e.cmd})`);
+    const blob = new Blob([lines.join('\n')], { type:'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'output_log_' + Date.now() + '.txt';
+    a.click();
+}
+
+document.getElementById('ol-search').addEventListener('input', function() {
+    olSearch = this.value;
+    olRender();
+});
+
+// ==========================================
+// MAINTENANCE Export (sama persis asli)
+// ==========================================
+let selectedFormat = 'txt';
+function selectExportFormat(card) {
+    document.querySelectorAll('.export-option-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedFormat = card.getAttribute('data-format');
+    document.getElementById('export-format-label').textContent = selectedFormat.toUpperCase();
+}
+document.getElementById('do-export-btn').addEventListener('click', async () => {
+    if (outputLog.length === 0) { alert('Tidak ada data untuk diekspor.'); return; }
+    const btn = document.getElementById('do-export-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    try {
+        const res = await fetch('/api/outputs/export', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ format: selectedFormat })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        alert('Tersimpan di archive: ' + data.filename);
+    } catch(err) {
+        alert('Export gagal: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-download"></i> Export Sekarang';
+    }
+});
+
+// ==========================================
+// INIT: fetch data, lalu poll tiap 3 detik
+// ==========================================
+document.getElementById('do-delete-btn').addEventListener('click', async () => {
+    if (!confirm('Hapus semua data di table outputs? Tindakan ini tidak bisa dibatalkan.')) return;
+    try {
+        const res = await fetch('/api/outputs/clear', { method: 'DELETE' });
+        const data = await res.json();
+        if (data.ok) {
+            outputLog.length = 0;
+            Object.keys(deviceLogs).forEach(k => deviceLogs[k] = []);
+            olRender();
+            renderActiveScreens();
+            updateExportPreview();
+            alert(`Berhasil menghapus ${data.deleted} rows dari DB.`);
+        } else {
+            alert('Gagal: ' + (data.error || 'unknown error'));
+        }
+    } catch(err) {
+        alert('Error: ' + err.message);
+    }
+});
+
+fetchInitialData().then(() => {
+    setInterval(pollNewData, 3000);
+});
+</script>
+
+
+<script>
+    // Dual-video crossfade engine — no flicker
+    function makeCrossfadePlayer(vidA, vidB) {
+        const NORMAL  = 'https://raw.githubusercontent.com/Ayinn07/Admin-Panel/main/blackhole.mp4';
+        const REVERSE = 'https://raw.githubusercontent.com/Ayinn07/Admin-Panel/main/blackhole_reverse.mp4';
+        let seq = [NORMAL, REVERSE];
+        let idx = 0;
+        let active = vidA;   // currently visible
+        let standby = vidB;  // preloading next
+
+        function loadStandby() {
+            const next = seq[(idx + 1) % 2];
+            standby.src = next;
+            standby.load();
+            standby.currentTime = 0;
+        }
+
+        function swap() {
+            idx = (idx + 1) % 2;
+            standby.classList.remove('hidden'); // show standby (already loaded, frame 0)
+            standby.play().catch(() => {});
+            active.classList.add('hidden');     // instantly hide active
+            [active, standby] = [standby, active];
+            loadStandby();
+        }
+
+        active.addEventListener('ended', swap);
+        standby.addEventListener('ended', swap);
+
+        // kick off
+        active.src = seq[0];
+        active.load();
+        active.play().catch(() => {});
+        loadStandby();
+    }
+
+    // Background fullscreen
+    const bhA = document.getElementById('bh-a');
+    const bhB = document.getElementById('bh-b');
+    makeCrossfadePlayer(bhA, bhB);
+
+
+    // Sidebar mini blackhole — same dual-video instant swap
+    makeCrossfadePlayer(
+        document.getElementById('bh-s-a'),
+        document.getElementById('bh-s-b')
+    );
+
+    // VOMIT-OUT: kebalikan suck-in — tiap elemen terbang dari pusat ke posisi aslinya
+    function fireVomit() {
+        const veil = document.getElementById('intro-veil');
+
+        // Elemen-elemen yang dimuntahkan, urutan dari tengah ke luar
+        const targets = [
+            // Core UI dulu
+            document.querySelector('.topbar'),
+            document.querySelector('.sidebar'),
+            // Stat cards satu per satu
+            ...document.querySelectorAll('.stat-card'),
+            // Panel-panel
+            ...document.querySelectorAll('.panel'),
+            // Workspace lainnya
+            document.querySelector('.workspace'),
+        ].filter(Boolean);
+
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+
+        // Set semua invisible dulu, posisi dari tengah
+        targets.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const ex = rect.left + rect.width / 2;
+            const ey = rect.top + rect.height / 2;
+            const dx = cx - ex;
+            const dy = cy - ey;
+
+            // Mulai dari posisi tengah, scale kecil
+            el.style.transition = 'none';
+            el.style.transform = `translate(${dx}px, ${dy}px) scale(0.06)`;
+            el.style.opacity = '0';
+        });
+
+        // Fade veil dulu, video keliatan
+        requestAnimationFrame(() => {
+            veil.classList.add('gone');
+
+            // Delay sedikit biar video sempat keliatan dulu
+            setTimeout(() => {
+                targets.forEach((el, i) => {
+                    const delay = 80 + i * 45;
+                    const dur = 650 + i * 20;
+                    el.style.transition = `transform ${dur}ms ${delay}ms cubic-bezier(.16,1.3,.3,1), opacity ${dur * 0.5}ms ${delay}ms ease`;
+                    requestAnimationFrame(() => {
+                        el.style.transform = 'translate(0,0) scale(1)';
+                        el.style.opacity = '1';
+                    });
+                });
+            }, 200);
+        });
+    }
+
+    // canplay = frame pertama sudah siap di-render
+    bhA.addEventListener('canplay', fireVomit, { once: true });
+    // fallback 2.5s
+    const vomitFallback = setTimeout(fireVomit, 2500);
+    bhA.addEventListener('canplay', () => clearTimeout(vomitFallback), { once: true });
+</script>
+
+</body>
+</html>
