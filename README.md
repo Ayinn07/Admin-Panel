@@ -64,6 +64,6 @@ Admin-Panel/
 ├── index.html              # Landing page utama
 ├── blackhole.mp4           # Aset video latar belakang
 ├── blackhole_reverse.mp4   # Aset video alternatif/transisi
-├── c2-panel/               # Antarmuka web khusus dashboard panel kontrol
+├── panel-command/               # Antarmuka web khusus dashboard panel kontrol
 ├── backend/                # Server Node.js (API penanganan command & agen)
 └── README.md
