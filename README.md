@@ -15,6 +15,20 @@
 
 ---
 
+## 📸 Preview & Demo
+
+Berikut adalah tampilan antarmuka dari simulasi proyek ini:
+
+### 🌐 Landing Page
+![Landing Page Preview](assets/landing-page-preview.png)
+*Keterangan singkat mengenai aset visual (menggunakan latar belakang `blackhole.mp4`).*
+
+### 🎮 C2 Management Dashboard
+![C2 Dashboard Preview](assets/dashboard-preview.png)
+*Tampilan panel utama tempat simulasi pengiriman perintah dan pemantauan agen.*
+
+---
+
 ## 🤖 Catatan Pengembangan (AI-Assisted Development)
 
 Proyek ini memanfaatkan teknologi kecerdasan buatan (AI) dalam proses pembuatan kode backend (*Node.js*) untuk mempercepat pembuatan prototipe dan efisiensi waktu pengembangan. 
@@ -29,6 +43,7 @@ Fokus utama penulis dalam proyek ini adalah:
 
 ### 🖥️ 1. Landing Page Interface
 * Desain halaman depan modern yang responsif menggunakan standar industri.
+* Implementasi elemen video (`blackhole.mp4`) untuk transisi visual antarmuka.
 
 ### 🎮 2. C2 Simulation Dashboard
 * **Target Management:** Visualisasi status dan informasi dasar dari perangkat/agen simulasi yang terhubung.
@@ -39,11 +54,16 @@ Fokus utama penulis dalam proyek ini adalah:
 
 ## 📂 Struktur Repositori
 
-Untuk kemudahan pengembangan lokal, proyek ini disatukan dalam struktur berikut:
+Struktur repositori diatur sebagai berikut untuk memudahkan pengelolaan aset statis dan server backend:
+
 ```text
 Admin-Panel/
-├── index.html              # Kode antarmuka pengguna (HTML, CSS, JS)
-├── blackhole.mp4
-├── blackhole_reverse.mp4  
+├── assets/                 # Folder tempat menyimpan gambar screenshot untuk README
+│   ├── landing-page-preview.png
+│   └── dashboard-preview.png
+├── index.html              # Landing page utama
+├── blackhole.mp4           # Aset video latar belakang
+├── blackhole_reverse.mp4   # Aset video alternatif/transisi
+├── c2-panel/               # Antarmuka web khusus dashboard panel kontrol
 ├── backend/                # Server Node.js (API penanganan command & agen)
 └── README.md
